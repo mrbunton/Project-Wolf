@@ -1,20 +1,77 @@
 #include <iostream>
 #include <vector>
 #include "Object.h"
+/*
+Comments:
+Collision between 2 objects is "done" for the most part but not tested at all.
+So it probably has a mistake.
+*/
+
+
 class Hitbox {
     public:
-        int coords[2];
-        int size[2];
+        int x;
+        int y;
+        int dx;
+        int dy;
+    
+        bool intersects(Hitbox box){ 
+            return !(x> box.dx || box.x > dx || y > box.dy || box.y > dy)
+        }
+        Hitbox (int ox, int oy, int oh, int ow) {
+            x = ox;
+            y = oy; 
+            dx = oh;
+            dy = ow;
+        }
         
 };
-class Collision {
-    private:
+class CollisionObject{
+    
+    public:
         std::vector<Hitbox> hitboxes;
         int num_hitboxes;
-        Hitbox central_hitbox;
-    public:
-        Collision(Object& o) {
+        Hitbox main_hitbox; // a hitbox that surrounds all the other hitboxes
+
+        CollisionObject(std::vector<Hitbox> hbs) {
+            Hitbox temp_h = hbs[0];
+            x = temp_h.x;
+            y = temp_h.y;
+            dx = temp_h.dx;
+            dy = temp_h.dy;
             
+            for (auto hb: hbs){
+                num_hitboxes++;
+                if (x > hb.x){
+                    x = hb.x;
+                }
+                if (dx < hb.dx){
+                    x = hb.dx;
+                }
+                if (y > hb.y){
+                    y = hb.y;
+                }
+                if (dy < hb.dy){
+                    dy = hb.dy;
+                }
+                hitboxes.push_back(hb);
+            }
+            main_hitbox = Hitbox(x,y,dx,dy);
         }
 
-}
+
+        bool intersects (CollisionObject box){
+            if (!main_hitbox.intersects(box.main_hitbox)){
+                return false;
+            }
+            for (auto hit_a : box.hitboxes){
+                for (auto hit_b : hitboxes){
+                    if (hit_a.intersects(hit_b)){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+};
